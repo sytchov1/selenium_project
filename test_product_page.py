@@ -2,7 +2,35 @@ from .pages.product_page import ProductPage
 from .pages.login_page import LoginPage
 from.pages.basket_page import BasketPage
 import time
+import uuid
 import pytest
+
+
+@pytest.mark.add_to_basket_user
+class TestUserAddToBasketFromProductPage():
+    @pytest.fixture(autouse=True)
+    def setup(self, browser):
+        email = str(time.time()) + "@fakemail.org"
+        password = str(uuid.uuid1())
+        link = "https://selenium1py.pythonanywhere.com/en-gb/accounts/login/"
+        page = LoginPage(browser, link)
+        page.open()
+        page.register_new_user(email, password)
+        page.should_be_authorized_user()
+
+    def test_user_can_add_product_to_basket(self, browser):
+        link = f"http://selenium1py.pythonanywhere.com/en-gb/catalogue/coders-at-work_207/"
+        page = ProductPage(browser, link)
+        page.open()
+        page.add_product_to_basket()
+        page.should_be_right_message()
+        page.should_be_right_cost()
+
+    def test_guest_cant_see_success_message(self, browser):
+        link = "http://selenium1py.pythonanywhere.com/catalogue/the-shellcoders-handbook_209"
+        page = ProductPage(browser, link)
+        page.open()
+        page.should_not_be_success_message()
 
 
 @pytest.mark.parametrize('num', [pytest.param(num, marks=pytest.mark.xfail) if num == 7 else num for num in range(10)])
